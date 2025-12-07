@@ -1,1 +1,0 @@
-User prompt describing the DevOps task request (placeholder).

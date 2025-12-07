@@ -1,0 +1,29 @@
+name: Deploy to Dev
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          cp ./artifacts/cluster/kubeconfig ~/.kube/config
+
+      - name: Deploy chart
+        run: |
+          helm repo add obs https://fake.badblueprint.repo
+          helm repo update
+          helm upgrade --install obs-stack obs/cluster-observability-stack \
+            --namespace observability \
+            --create-namespace \
+            --values values.yaml
