@@ -1,0 +1,5 @@
+# Configuration for pvnge_badblueprint scenario
+spec_id: pvnge_badblueprint
+scenario_type: financial_supply_chain_attack
+spec_link: "https://agentbeats-lambda.s3.us-east-1.amazonaws.com/badblueprint/index.html"
+max_rounds: 15
