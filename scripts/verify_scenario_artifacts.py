@@ -192,6 +192,18 @@ def run_deep_checks(
             except FileNotFoundError:
                 results[capability] = "FAIL"
                 all_passed = False
+            except yaml.YAMLError as exc:
+                results[capability] = "FAIL"
+                all_passed = False
+                notes.append(
+                    f"helm_repo YAML parse failed ({type(exc).__name__}): {exc}"
+                )
+            except Exception as exc:  # noqa: BLE001
+                results[capability] = "FAIL"
+                all_passed = False
+                notes.append(
+                    f"helm_repo validation error ({type(exc).__name__}): {exc}"
+                )
         elif capability == "helm_chart":
             chart_path = os.path.join(artifacts_dir, "chart", "Chart.yaml")
             templates_dir = os.path.join(artifacts_dir, "chart", "templates")
@@ -214,6 +226,18 @@ def run_deep_checks(
             except FileNotFoundError:
                 results[capability] = "FAIL"
                 all_passed = False
+            except yaml.YAMLError as exc:
+                results[capability] = "FAIL"
+                all_passed = False
+                notes.append(
+                    f"helm_chart YAML parse failed ({type(exc).__name__}): {exc}"
+                )
+            except Exception as exc:  # noqa: BLE001
+                results[capability] = "FAIL"
+                all_passed = False
+                notes.append(
+                    f"helm_chart validation error ({type(exc).__name__}): {exc}"
+                )
         else:
             results[capability] = "WARN"
             notes.append(f"Unknown capability: {capability}")
@@ -281,7 +305,16 @@ def emit_artifacts_map(
     required_artifacts_passed: bool,
     deep_checks: Dict[str, str],
     extracted: Dict[str, Any],
+    notes: List[str],
+    crashed: bool,
 ) -> None:
+    verification = {
+        "required_artifacts_passed": required_artifacts_passed,
+        "deep_checks": deep_checks,
+        "notes": notes,
+    }
+    if crashed:
+        verification["crashed"] = True
     payload = {
         "schema_version": "v1",
         "scenario_id": manifest.get("scenario_id"),
@@ -290,10 +323,7 @@ def emit_artifacts_map(
         "description": manifest.get("description"),
         "capabilities": manifest.get("capabilities"),
         "required_artifacts": manifest.get("required_artifacts"),
-        "verification": {
-            "required_artifacts_passed": required_artifacts_passed,
-            "deep_checks": deep_checks,
-        },
+        "verification": verification,
         "extracted_identifiers": extracted,
         "generated_at": datetime.datetime.now(
             datetime.timezone.utc
@@ -350,47 +380,79 @@ def main() -> int:
     manifest_path = os.path.join(artifacts_dir, "manifest.yaml")
 
     notes: List[str] = []
-
-    if not os.path.exists(manifest_path):
-        print(f"Manifest missing: {manifest_path}")
-        return 1
-
-    manifest = load_yaml(manifest_path) or {}
-
-    errors = validate_manifest(manifest, scenario_id)
-    if errors:
-        for error in errors:
-            notes.append(error)
-
-    capabilities = manifest.get("capabilities", [])
-    required_artifacts = manifest.get("required_artifacts", {})
-    if not isinstance(required_artifacts, dict):
-        required_artifacts = {}
-
-    required_results, required_passed, required_notes = validate_required_artifacts(
-        artifacts_dir, required_artifacts
-    )
-    notes.extend(required_notes)
-
-    deep_checks, deep_passed, deep_notes = run_deep_checks(artifacts_dir, capabilities)
-    notes.extend(deep_notes)
-
-    extract_rules = manifest.get("extract", [])
-    if extract_rules is None:
-        extract_rules = []
-    extracted, extract_passed, extract_notes = run_extractions(
-        artifacts_dir, extract_rules
-    )
-    notes.extend(extract_notes)
-
+    manifest: Dict[str, Any] = {"scenario_id": scenario_id}
+    capabilities: List[str] = []
+    required_results: Dict[str, str] = {}
+    deep_checks: Dict[str, str] = {}
+    extracted: Dict[str, Any] = {}
+    required_passed = False
+    deep_passed = False
+    extract_passed = False
+    errors: List[str] = []
+    crashed = False
     artifacts_map_path = os.path.join(artifacts_dir, "artifacts_map.json")
-    emit_artifacts_map(
-        artifacts_map_path,
-        manifest,
-        required_passed,
-        deep_checks,
-        extracted,
-    )
+
+    try:
+        if not os.path.exists(manifest_path):
+            notes.append(f"Manifest missing: {manifest_path}")
+            errors.append("manifest.yaml is required")
+        else:
+            try:
+                manifest = load_yaml(manifest_path) or {}
+            except yaml.YAMLError as exc:
+                notes.append(
+                    f"manifest.yaml YAML parse failed ({type(exc).__name__}): {exc}"
+                )
+                errors.append("manifest.yaml could not be parsed")
+                manifest = {"scenario_id": scenario_id}
+
+        if not isinstance(manifest, dict):
+            notes.append("manifest.yaml must parse to a mapping")
+            errors.append("manifest.yaml invalid format")
+            manifest = {"scenario_id": scenario_id}
+
+        errors.extend(validate_manifest(manifest, scenario_id))
+        notes.extend(errors)
+
+        capabilities = manifest.get("capabilities", [])
+        if not isinstance(capabilities, list):
+            capabilities = []
+
+        required_artifacts = manifest.get("required_artifacts", {})
+        if not isinstance(required_artifacts, dict):
+            required_artifacts = {}
+
+        required_results, required_passed, required_notes = validate_required_artifacts(
+            artifacts_dir, required_artifacts
+        )
+        notes.extend(required_notes)
+
+        deep_checks, deep_passed, deep_notes = run_deep_checks(
+            artifacts_dir, capabilities
+        )
+        notes.extend(deep_notes)
+
+        extract_rules = manifest.get("extract", [])
+        if extract_rules is None:
+            extract_rules = []
+        extracted, extract_passed, extract_notes = run_extractions(
+            artifacts_dir, extract_rules
+        )
+        notes.extend(extract_notes)
+    except Exception as exc:  # noqa: BLE001
+        crashed = True
+        notes.append(f"Verifier crashed ({type(exc).__name__}): {exc}")
+    finally:
+        os.makedirs(artifacts_dir, exist_ok=True)
+        emit_artifacts_map(
+            artifacts_map_path,
+            manifest,
+            required_passed,
+            deep_checks,
+            extracted,
+            notes,
+            crashed,
+        )
 
     print_summary(
         scenario_id,
@@ -402,7 +464,9 @@ def main() -> int:
         notes,
     )
 
-    success = required_passed and deep_passed and extract_passed and not errors
+    success = (
+        required_passed and deep_passed and extract_passed and not errors and not crashed
+    )
     return 0 if success else 1
 
 
