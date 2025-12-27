@@ -7,6 +7,14 @@ on:
       - "scripts/**"
       - "docs/**"
       - ".github/workflows/**"
+  push:
+    branches:
+      - "feature/badblueprint"
+    paths:
+      - "scenarios/**"
+      - "scripts/**"
+      - "docs/**"
+      - ".github/workflows/**"
 
 jobs:
   verify-scenarios:
