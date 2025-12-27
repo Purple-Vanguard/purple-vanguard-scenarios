@@ -54,6 +54,16 @@ def extract_yaml_path(source_path: str, path: str) -> Any:
     return get_by_dotted_path(data, path)
 
 
+def select_list_field(value: Any, field: str) -> List[Any]:
+    if not isinstance(value, list):
+        raise ValueError("select requires a list result")
+    selected = []
+    for item in value:
+        if isinstance(item, dict) and field in item:
+            selected.append(item[field])
+    return selected
+
+
 def extract_yaml_keys(source_path: str, path: str) -> List[str]:
     data = load_yaml(source_path)
     node = get_by_dotted_path(data, path)
@@ -269,6 +279,9 @@ def run_extractions(
                 if not path:
                     raise ValueError("yaml_path requires 'path'")
                 value = extract_yaml_path(source_path, path)
+                select = rule.get("select")
+                if select:
+                    value = select_list_field(value, select)
             elif kind == "yaml_keys":
                 path = rule.get("path")
                 if not path:
