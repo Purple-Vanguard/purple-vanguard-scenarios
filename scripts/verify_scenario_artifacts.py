@@ -54,6 +54,16 @@ def extract_yaml_path(source_path: str, path: str) -> Any:
     return get_by_dotted_path(data, path)
 
 
+def select_from_list(value: Any, select: str) -> List[Any]:
+    if not isinstance(value, list):
+        raise ValueError("select requires a list result")
+    selected = []
+    for item in value:
+        if isinstance(item, dict) and select in item:
+            selected.append(item[select])
+    return selected
+
+
 def extract_yaml_keys(source_path: str, path: str) -> List[str]:
     data = load_yaml(source_path)
     node = get_by_dotted_path(data, path)
@@ -257,6 +267,7 @@ def run_extractions(
         kind = rule.get("kind")
         source = rule.get("source")
         required = rule.get("required", True)
+        select = rule.get("select")
         if not rule_id or not kind or not source:
             all_passed = False
             notes.append("Extract rule missing required fields (id/kind/source)")
@@ -269,16 +280,24 @@ def run_extractions(
                 if not path:
                     raise ValueError("yaml_path requires 'path'")
                 value = extract_yaml_path(source_path, path)
+                if select:
+                    value = select_from_list(value, select)
             elif kind == "yaml_keys":
+                if select:
+                    raise ValueError("select is only supported for yaml_path")
                 path = rule.get("path")
                 if not path:
                     raise ValueError("yaml_keys requires 'path'")
                 value = extract_yaml_keys(source_path, path)
             elif kind == "glob_list":
+                if select:
+                    raise ValueError("select is only supported for yaml_path")
                 value = extract_glob_list(artifacts_dir, source)
                 if not value:
                     raise ValueError("No files matched glob pattern")
             elif kind == "text_regex":
+                if select:
+                    raise ValueError("select is only supported for yaml_path")
                 pattern = rule.get("pattern")
                 if not pattern:
                     raise ValueError("text_regex requires 'pattern'")

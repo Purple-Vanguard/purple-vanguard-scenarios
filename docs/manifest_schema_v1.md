@@ -28,6 +28,8 @@ Each entry in `extract` is an object with:
 - **kind** (required): one of `yaml_path`, `yaml_keys`, `glob_list`, `text_regex`.
 - **source** (required): path (or glob pattern) relative to `artifacts/`.
 - **path** (optional): dotted path for YAML traversal (required for `yaml_path` and `yaml_keys`).
+- **select** (optional): for `yaml_path`, project a field from each item when the extracted
+  value is a list of dictionaries (e.g., `select: version`).
 - **pattern** (optional): regex pattern (required for `text_regex`).
 - **group** (optional): regex capture group (default `1`).
 - **required** (optional): boolean, defaults to `true`.
@@ -35,6 +37,8 @@ Each entry in `extract` is an object with:
 ### Extract kinds
 
 - **yaml_path**: parse YAML at `source` and extract a value using `path` (e.g., `entries.mychart.0.version`).
+  If `select` is provided and the extracted value is a list of dictionaries, return
+  a list of each item's selected field.
 - **yaml_keys**: parse YAML at `source` and list keys under `path`.
 - **glob_list**: list files matching the `source` glob pattern.
 - **text_regex**: apply regex `pattern` to the text file at `source` and extract `group`.
@@ -77,7 +81,9 @@ required_artifacts:
   helm_repo:
     - helm_repo/index.yaml
   helm_chart:
-    - chart/
+    - chart/Chart.yaml
+    - chart/values.yaml
+    - chart/templates/
 extract:
   - id: helm_chart.name
     kind: yaml_path
@@ -91,6 +97,11 @@ extract:
     kind: yaml_keys
     source: helm_repo/index.yaml
     path: entries
+  - id: helm_repo.versions
+    kind: yaml_path
+    source: helm_repo/index.yaml
+    path: entries.cluster-observability-stack
+    select: version
   - id: prompts.files
     kind: glob_list
     source: prompts/*.md
