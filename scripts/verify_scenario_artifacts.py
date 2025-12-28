@@ -8,7 +8,11 @@ import re
 import sys
 from typing import Any, Dict, List, Tuple
 
-import yaml
+try:
+    import yaml
+except ModuleNotFoundError:
+    print("[FAIL] Missing dependency: pyyaml. Install with: pip install pyyaml")
+    sys.exit(2)
 
 
 def load_yaml(path: str) -> Any:
@@ -54,13 +58,22 @@ def extract_yaml_path(source_path: str, path: str) -> Any:
     return get_by_dotted_path(data, path)
 
 
-def select_list_field(value: Any, field: str) -> List[Any]:
+def select_list_field(value: Any, field: str, rule_id: str) -> List[Any]:
     if not isinstance(value, list):
-        raise ValueError("select requires a list result")
+        raise ValueError(
+            f"{rule_id}: select expects yaml_path to return a list of mappings"
+        )
     selected = []
-    for item in value:
-        if isinstance(item, dict) and field in item:
-            selected.append(item[field])
+    for index, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise ValueError(
+                f"{rule_id}: select expects mapping at index {index}"
+            )
+        if field not in item:
+            raise ValueError(
+                f"{rule_id}: select missing '{field}' at index {index}"
+            )
+        selected.append(item[field])
     return selected
 
 
@@ -206,7 +219,7 @@ def run_deep_checks(
                 results[capability] = "FAIL"
                 all_passed = False
                 notes.append(
-                    f"helm_repo YAML parse failed ({type(exc).__name__}): {exc}"
+                    f"helm_repo YAML parse error: {type(exc).__name__}: {exc}"
                 )
             except Exception as exc:  # noqa: BLE001
                 results[capability] = "FAIL"
@@ -240,7 +253,7 @@ def run_deep_checks(
                 results[capability] = "FAIL"
                 all_passed = False
                 notes.append(
-                    f"helm_chart YAML parse failed ({type(exc).__name__}): {exc}"
+                    f"helm_chart YAML parse error: {type(exc).__name__}: {exc}"
                 )
             except Exception as exc:  # noqa: BLE001
                 results[capability] = "FAIL"
@@ -281,17 +294,23 @@ def run_extractions(
                 value = extract_yaml_path(source_path, path)
                 select = rule.get("select")
                 if select:
-                    value = select_list_field(value, select)
+                    value = select_list_field(value, select, rule_id)
             elif kind == "yaml_keys":
+                if rule.get("select"):
+                    raise ValueError("select is only supported for yaml_path")
                 path = rule.get("path")
                 if not path:
                     raise ValueError("yaml_keys requires 'path'")
                 value = extract_yaml_keys(source_path, path)
             elif kind == "glob_list":
+                if rule.get("select"):
+                    raise ValueError("select is only supported for yaml_path")
                 value = extract_glob_list(artifacts_dir, source)
                 if not value:
                     raise ValueError("No files matched glob pattern")
             elif kind == "text_regex":
+                if rule.get("select"):
+                    raise ValueError("select is only supported for yaml_path")
                 pattern = rule.get("pattern")
                 if not pattern:
                     raise ValueError("text_regex requires 'pattern'")
