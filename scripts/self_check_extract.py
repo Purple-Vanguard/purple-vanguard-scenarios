@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import sys
 
-from verify_scenario_artifacts import select_list_field
+from verify_scenario_artifacts import MISSING_PYYAML_NOTE, YAML_AVAILABLE, select_list_field
 
 
 def main() -> int:
+    if not YAML_AVAILABLE:
+        print(f"[WARN] {MISSING_PYYAML_NOTE}")
     try:
         result = select_list_field(
             [{"version": "1.0.0"}, {"version": "2.0.0"}],

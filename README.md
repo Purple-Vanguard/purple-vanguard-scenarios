@@ -9,6 +9,6 @@ This skeleton currently contains the `badblueprint` supply-chain/financial scena
 Run the scenario verifier locally after installing the PyYAML dependency:
 
 ```sh
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python scripts/verify_scenario_artifacts.py badblueprint
 ```
