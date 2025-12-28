@@ -10,17 +10,14 @@ from typing import Any, Dict, List, Tuple
 
 try:
     import yaml
-    YAML_AVAILABLE = True
-except ImportError:
-    yaml = None
-    YAML_AVAILABLE = False
-
-MISSING_PYYAML_NOTE = "PyYAML missing. Run: python -m pip install -r requirements.txt"
+except ModuleNotFoundError:
+    print(
+        "[FAIL] Missing dependency: PyYAML. Install with: pip install -r requirements.txt"
+    )
+    sys.exit(2)
 
 
 def load_yaml(path: str) -> Any:
-    if not YAML_AVAILABLE:
-        raise RuntimeError(MISSING_PYYAML_NOTE)
     with open(path, "r", encoding="utf-8") as handle:
         return yaml.safe_load(handle)
 
@@ -206,11 +203,6 @@ def run_deep_checks(
                 results[capability] = "FAIL"
                 all_passed = False
         elif capability == "helm_repo":
-            if not YAML_AVAILABLE:
-                results[capability] = "FAIL"
-                all_passed = False
-                notes.append(f"{capability}: {MISSING_PYYAML_NOTE}")
-                continue
             repo_path = os.path.join(artifacts_dir, "helm_repo", "index.yaml")
             try:
                 data = load_yaml(repo_path)
@@ -236,11 +228,6 @@ def run_deep_checks(
                     f"helm_repo validation error ({type(exc).__name__}): {exc}"
                 )
         elif capability == "helm_chart":
-            if not YAML_AVAILABLE:
-                results[capability] = "FAIL"
-                all_passed = False
-                notes.append(f"{capability}: {MISSING_PYYAML_NOTE}")
-                continue
             chart_path = os.path.join(artifacts_dir, "chart", "Chart.yaml")
             templates_dir = os.path.join(artifacts_dir, "chart", "templates")
             yaml_files = glob.glob(
@@ -311,8 +298,6 @@ def run_extractions(
             continue
         try:
             if kind == "yaml_path":
-                if not YAML_AVAILABLE:
-                    raise RuntimeError(MISSING_PYYAML_NOTE)
                 path = rule.get("path")
                 if not path:
                     raise ValueError("yaml_path requires 'path'")
@@ -320,8 +305,6 @@ def run_extractions(
                 if select:
                     value = select_list_field(value, select, rule_id)
             elif kind == "yaml_keys":
-                if not YAML_AVAILABLE:
-                    raise RuntimeError(MISSING_PYYAML_NOTE)
                 path = rule.get("path")
                 if not path:
                     raise ValueError("yaml_keys requires 'path'")
@@ -449,30 +432,14 @@ def main() -> int:
             notes.append(f"Manifest missing: {manifest_path}")
             errors.append("manifest.yaml is required")
         else:
-            if not YAML_AVAILABLE:
-                notes.append(MISSING_PYYAML_NOTE)
-                errors.append(MISSING_PYYAML_NOTE)
-                inferred_caps = []
-                if os.path.isdir(os.path.join(artifacts_dir, "prompts")):
-                    inferred_caps.append("prompts")
-                if os.path.isdir(os.path.join(artifacts_dir, "helm_repo")):
-                    inferred_caps.append("helm_repo")
-                if os.path.isdir(os.path.join(artifacts_dir, "chart")):
-                    inferred_caps.append("helm_chart")
-                manifest = {
-                    "scenario_id": scenario_id,
-                    "capabilities": inferred_caps,
-                    "required_artifacts": {},
-                }
-            else:
-                try:
-                    manifest = load_yaml(manifest_path) or {}
-                except yaml.YAMLError as exc:
-                    notes.append(
-                        f"manifest.yaml YAML parse failed ({type(exc).__name__}): {exc}"
-                    )
-                    errors.append("manifest.yaml could not be parsed")
-                    manifest = {"scenario_id": scenario_id}
+            try:
+                manifest = load_yaml(manifest_path) or {}
+            except yaml.YAMLError as exc:
+                notes.append(
+                    f"manifest.yaml YAML parse failed ({type(exc).__name__}): {exc}"
+                )
+                errors.append("manifest.yaml could not be parsed")
+                manifest = {"scenario_id": scenario_id}
 
         if not isinstance(manifest, dict):
             notes.append("manifest.yaml must parse to a mapping")
