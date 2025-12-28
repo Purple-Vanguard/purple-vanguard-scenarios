@@ -64,16 +64,20 @@ def select_list_field(value: Any, field: str, rule_id: str) -> List[Any]:
             f"{rule_id}: select expects yaml_path to return a list of mappings"
         )
     selected = []
-    for index, item in enumerate(value):
+    invalid_type = 0
+    missing_field = 0
+    for item in value:
         if not isinstance(item, dict):
-            raise ValueError(
-                f"{rule_id}: select expects mapping at index {index}"
-            )
+            invalid_type += 1
+            continue
         if field not in item:
-            raise ValueError(
-                f"{rule_id}: select missing '{field}' at index {index}"
-            )
+            missing_field += 1
+            continue
         selected.append(item[field])
+    if invalid_type or missing_field:
+        raise ValueError(
+            f"{rule_id}: select failures (non-mapping={invalid_type}, missing '{field}'={missing_field})"
+        )
     return selected
 
 
@@ -286,31 +290,34 @@ def run_extractions(
             continue
 
         source_path = os.path.join(artifacts_dir, source)
+        select = rule.get("select")
+        if select and kind != "yaml_path":
+            message = f"{rule_id}: select is only supported for yaml_path"
+            if required:
+                all_passed = False
+                notes.append(f"Extraction failed for {rule_id}: {message}")
+            else:
+                notes.append(f"Optional extraction skipped for {rule_id}: {message}")
+            results[rule_id] = None
+            continue
         try:
             if kind == "yaml_path":
                 path = rule.get("path")
                 if not path:
                     raise ValueError("yaml_path requires 'path'")
                 value = extract_yaml_path(source_path, path)
-                select = rule.get("select")
                 if select:
                     value = select_list_field(value, select, rule_id)
             elif kind == "yaml_keys":
-                if rule.get("select"):
-                    raise ValueError("select is only supported for yaml_path")
                 path = rule.get("path")
                 if not path:
                     raise ValueError("yaml_keys requires 'path'")
                 value = extract_yaml_keys(source_path, path)
             elif kind == "glob_list":
-                if rule.get("select"):
-                    raise ValueError("select is only supported for yaml_path")
                 value = extract_glob_list(artifacts_dir, source)
                 if not value:
                     raise ValueError("No files matched glob pattern")
             elif kind == "text_regex":
-                if rule.get("select"):
-                    raise ValueError("select is only supported for yaml_path")
                 pattern = rule.get("pattern")
                 if not pattern:
                     raise ValueError("text_regex requires 'pattern'")
