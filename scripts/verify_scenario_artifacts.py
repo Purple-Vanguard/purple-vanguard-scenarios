@@ -64,20 +64,14 @@ def select_list_field(value: Any, field: str, rule_id: str) -> List[Any]:
             f"{rule_id}: select expects yaml_path to return a list of mappings"
         )
     selected = []
-    invalid_type = 0
-    missing_field = 0
-    for item in value:
+    for index, item in enumerate(value):
         if not isinstance(item, dict):
-            invalid_type += 1
-            continue
+            raise ValueError(f"{rule_id}: select expects mapping at index {index}")
         if field not in item:
-            missing_field += 1
-            continue
+            raise ValueError(
+                f"{rule_id}: select missing '{field}' at index {index}"
+            )
         selected.append(item[field])
-    if invalid_type or missing_field:
-        raise ValueError(
-            f"{rule_id}: select failures (non-mapping={invalid_type}, missing '{field}'={missing_field})"
-        )
     return selected
 
 
