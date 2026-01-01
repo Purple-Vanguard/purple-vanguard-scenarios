@@ -12,7 +12,7 @@ try:
     import yaml
 except ModuleNotFoundError:
     print(
-        "[FAIL] Missing dependency: PyYAML. Install with: pip install -r requirements.txt"
+        "[FAIL] Missing dependency: PyYAML. Install with: python -m pip install -r requirements.txt"
     )
     sys.exit(2)
 
