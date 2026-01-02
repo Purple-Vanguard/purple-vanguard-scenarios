@@ -13,7 +13,9 @@ required_artifacts:
   helm_repo:
     - helm_repo/index.yaml
   helm_chart:
-    - chart/
+    - chart/Chart.yaml
+    - chart/values.yaml
+    - chart/templates/
 extract:
   - id: helm_chart.name
     kind: yaml_path
@@ -27,6 +29,11 @@ extract:
     kind: yaml_keys
     source: helm_repo/index.yaml
     path: entries
+  - id: helm_repo.versions
+    kind: yaml_path
+    source: helm_repo/index.yaml
+    path: entries.cluster-observability-stack
+    select: version
   - id: prompts.files
     kind: glob_list
     source: prompts/*.md

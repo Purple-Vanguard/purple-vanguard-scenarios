@@ -26,6 +26,14 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: pip install pyyaml
+        run: pip install -r requirements.txt
+      - name: Self-check extraction helpers
+        run: python scripts/self_check_extract.py
       - name: Verify scenario artifacts
         run: python scripts/verify_scenario_artifacts.py ${{ matrix.scenario }}
+      - name: Upload artifacts_map.json
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts_map_badblueprint
+          path: scenarios/badblueprint/artifacts/artifacts_map.json
