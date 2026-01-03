@@ -57,13 +57,14 @@ evidence = []
 evidence.extend(repo_lines)
 evidence.extend(install_lines)
 
-source_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+raw_epoch = (os.environ.get("SOURCE_DATE_EPOCH") or "").strip()
 try:
-    epoch_value = int(source_epoch) if source_epoch is not None else 0
-except ValueError:
-    epoch_value = 0
+    epoch_seconds = int(raw_epoch)
+except (ValueError, TypeError):
+    epoch_seconds = 0
 
-timestamp = datetime.fromtimestamp(epoch_value, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+# Deterministic timestamp: SOURCE_DATE_EPOCH or fixed epoch (0)
+timestamp = datetime.fromtimestamp(epoch_seconds, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 payload = {
     "scenario_id": "pvnge_badblueprint",
