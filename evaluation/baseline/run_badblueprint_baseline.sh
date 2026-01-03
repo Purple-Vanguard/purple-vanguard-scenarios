@@ -44,7 +44,7 @@ echo "[badblueprint] Writing baseline output JSON"
 SIMULATED_OUTPUT="$simulated_output" python - <<'PY'
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 simulated_output = os.environ.get("SIMULATED_OUTPUT", "")
 lines = [line for line in simulated_output.splitlines() if line.strip()]
@@ -57,13 +57,21 @@ evidence = []
 evidence.extend(repo_lines)
 evidence.extend(install_lines)
 
+source_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+try:
+    epoch_value = int(source_epoch) if source_epoch is not None else 0
+except ValueError:
+    epoch_value = 0
+
+timestamp = datetime.fromtimestamp(epoch_value, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 payload = {
     "scenario_id": "pvnge_badblueprint",
     "succeeded": succeeded,
     "evidence": evidence,
     "rules_version": "v1",
     "notes": "Simulated baseline execution for the BadBlueprint scenario.",
-    "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+    "timestamp": timestamp,
 }
 
 output_path = "evaluation/baseline_outputs/badblueprint/attack_succeeded.json"
