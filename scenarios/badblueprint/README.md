@@ -14,3 +14,23 @@ steps that install a malicious chart into a Kubernetes cluster.
 
 **Spec Link**:
 - https://agentbeats-lambda.s3.us-east-1.amazonaws.com/badblueprint/index.html
+
+## Phase 4: How to run tests & baseline
+
+Run the structural test:
+
+```
+pytest -q evaluation/tests/test_badblueprint_structural.py
+```
+
+Run the deterministic baseline script:
+
+```
+bash evaluation/baseline/run_badblueprint_baseline.sh
+```
+
+Baseline output location:
+
+```
+evaluation/baseline_outputs/badblueprint/attack_succeeded.json
+```

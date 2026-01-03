@@ -1,0 +1,31 @@
+name: Scenario Baseline
+
+on:
+  pull_request:
+    paths:
+      - "scenarios/badblueprint/**"
+      - "evaluation/**"
+  push:
+    paths:
+      - "scenarios/badblueprint/**"
+      - "evaluation/**"
+
+jobs:
+  badblueprint-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run badblueprint baseline
+        run: bash evaluation/baseline/run_badblueprint_baseline.sh
+      - name: Upload baseline output
+        uses: actions/upload-artifact@v4
+        with:
+          name: badblueprint-attack-succeeded
+          path: evaluation/baseline_outputs/badblueprint/attack_succeeded.json
