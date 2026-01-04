@@ -27,6 +27,8 @@ jobs:
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "Vendor mirror is out-of-sync with pinned commit."
+            git status --porcelain
+            git diff --stat
             git diff > vendor-sync.patch
             exit 1
           fi

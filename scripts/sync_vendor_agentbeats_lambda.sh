@@ -58,8 +58,18 @@ if [[ -f "$VENDOR_DIR/README.md" ]]; then
 fi
 cp -a "$PIN_FILE" "$VENDOR_BACKUP_DIR/COMMIT_PIN.txt"
 
-log "Syncing upstream into vendor directory"
+log "Clearing vendor directory before sync"
 mkdir -p "$VENDOR_DIR"
+
+# Safety guard: never allow empty or root path
+if [[ -z "$VENDOR_DIR" || "$VENDOR_DIR" == "/" ]]; then
+  fail "Refusing to clear unsafe VENDOR_DIR: $VENDOR_DIR"
+fi
+
+# Clear everything under vendor (since we already backed up COMMIT_PIN, README, and purple_vanguard)
+rm -rf "$VENDOR_DIR"/* "$VENDOR_DIR"/.[!.]* "$VENDOR_DIR"/..?* 2>/dev/null || true
+
+log "Syncing upstream into vendor directory"
 rsync -a --delete --exclude ".git" "$UPSTREAM_DIR/" "$VENDOR_DIR/"
 
 if [[ -f "$VENDOR_BACKUP_DIR/README.md" ]]; then
