@@ -1,0 +1,6 @@
+.DS_Store
+results/
+**/results/
+build/
+dist/
+*.zip

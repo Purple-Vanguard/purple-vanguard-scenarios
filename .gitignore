@@ -205,3 +205,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Repo hygiene
+.DS_Store
+results/
+**/results/
+build/
+dist/
+*.zip

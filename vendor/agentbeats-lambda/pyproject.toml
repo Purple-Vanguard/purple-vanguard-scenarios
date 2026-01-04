@@ -1,0 +1,6 @@
+[project]
+name = "agentbeats-lambda"
+version = "0.0.0"
+description = "Vendor mirror placeholder for agentbeats-lambda."
+readme = "README.md"
+requires-python = ">=3.10"

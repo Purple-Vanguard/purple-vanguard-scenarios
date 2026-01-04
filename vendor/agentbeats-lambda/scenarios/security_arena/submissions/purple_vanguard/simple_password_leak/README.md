@@ -42,7 +42,7 @@ The scenario includes 4 test users:
 
 ```bash
 # Make sure you have .env file with OPENAI_API_KEY set
-uv run agentbeats-run scenarios/security_arena/submissions/my_team/simple_password_leak/scenario_simple_password_leak.toml
+uv run agentbeats-run scenarios/security_arena/submissions/purple_vanguard/simple_password_leak/scenario_simple_password_leak.toml
 ```
 
 ## Expected Results
