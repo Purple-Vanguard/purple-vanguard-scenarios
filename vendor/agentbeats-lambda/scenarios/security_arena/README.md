@@ -463,7 +463,7 @@ cmd = "python scenarios/security_arena/agents/generic_defender.py --host 127.0.0
 
 [config]
 # Team and scenario identifiers (used for results organization)
-team_name = "purple_vanguard"
+team_name = "my_team"
 scenario_type = "my_scenario"
 num_rounds = 5
 

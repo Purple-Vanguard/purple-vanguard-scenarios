@@ -1,1 +1,1 @@
-"""AgentBeats Lambda vendor package placeholder."""
+"""Agentbeats Tutorial Framework"""
