@@ -1,0 +1,39 @@
+name: Vendor Sync - AgentBeats Lambda
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - vendor/agentbeats-lambda/COMMIT_PIN.txt
+      - vendor/agentbeats-lambda/README.md
+      - scripts/sync_vendor_agentbeats_lambda.sh
+  push:
+    paths:
+      - vendor/agentbeats-lambda/COMMIT_PIN.txt
+      - vendor/agentbeats-lambda/README.md
+      - scripts/sync_vendor_agentbeats_lambda.sh
+
+jobs:
+  vendor-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync vendor mirror
+        run: bash scripts/sync_vendor_agentbeats_lambda.sh
+
+      - name: Verify vendor sync is clean
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Vendor mirror is out-of-sync with pinned commit."
+            git diff > vendor-sync.patch
+            exit 1
+          fi
+
+      - name: Upload vendor sync patch
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor-sync.patch
+          path: vendor-sync.patch
