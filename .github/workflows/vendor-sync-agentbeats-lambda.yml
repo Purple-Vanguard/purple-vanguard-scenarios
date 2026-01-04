@@ -16,6 +16,8 @@ on:
 jobs:
   vendor-sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,13 +27,27 @@ jobs:
 
       - name: Verify vendor sync is clean
         run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            echo "Vendor mirror is out-of-sync with pinned commit."
-            git status --porcelain
-            git diff --stat
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "Vendor mirror is already in sync."
+            exit 0
+          fi
+
+          echo "Vendor mirror is out-of-sync with pinned commit."
+          git status --porcelain
+          git diff --stat
+
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.head.repo.fork }}" == "true" ]]; then
+            echo "Fork PR detected; cannot push changes. Please apply vendor-sync.patch locally."
             git diff > vendor-sync.patch
             exit 1
           fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add vendor/agentbeats-lambda
+          git commit -m "chore(vendor): sync agentbeats-lambda to pinned commit" || true
+          git push
+          echo "Vendor mirror auto-synced and pushed."
 
       - name: Upload vendor sync patch
         if: failure()
