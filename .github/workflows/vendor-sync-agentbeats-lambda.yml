@@ -1,0 +1,71 @@
+name: Vendor Sync - AgentBeats Lambda
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - vendor/agentbeats-lambda/COMMIT_PIN.txt
+      - vendor/agentbeats-lambda/README.md
+      - scripts/sync_vendor_agentbeats_lambda.sh
+  push:
+    paths:
+      - vendor/agentbeats-lambda/COMMIT_PIN.txt
+      - vendor/agentbeats-lambda/README.md
+      - scripts/sync_vendor_agentbeats_lambda.sh
+
+jobs:
+  vendor-sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
+
+      - name: Sync vendor mirror
+        run: bash scripts/sync_vendor_agentbeats_lambda.sh
+
+      - name: Verify vendor sync is clean
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH="${{ github.event.pull_request.head.ref }}"
+            HEAD_REPO_FORK="${{ github.event.pull_request.head.repo.fork }}"
+            HEAD_REPO_FULL="${{ github.event.pull_request.head.repo.full_name }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+            HEAD_REPO_FORK="false"
+            HEAD_REPO_FULL="${{ github.repository }}"
+          fi
+
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Vendor mirror is out-of-sync with pinned commit."
+            git status --porcelain
+            git diff --stat
+
+            if [[ "${{ github.event_name }}" == "pull_request" && ( "$HEAD_REPO_FORK" == "true" || "$HEAD_REPO_FULL" != "${{ github.repository }}" ) ]]; then
+              echo "Fork PR detected; cannot push changes. Please apply vendor-sync.patch locally."
+              git diff > vendor-sync.patch
+              exit 1
+            fi
+
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add vendor/agentbeats-lambda
+            git commit -m "chore(vendor): sync agentbeats-lambda to pinned commit" || true
+            git push origin "HEAD:${BRANCH}"
+            echo "Vendor mirror auto-synced and pushed."
+            exit 0
+          fi
+
+          echo "Vendor mirror is already in sync."
+          exit 0
+
+      - name: Upload vendor sync patch
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor-sync.patch
+          path: vendor-sync.patch

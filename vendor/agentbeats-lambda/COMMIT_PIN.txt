@@ -1,0 +1,4 @@
+source_repo: https://github.com/LambdaLabsML/agentbeats-lambda
+pinned_commit: 295494c08477e6bea969141700f5b2f761727823
+pinned_date: 2025-01-02
+note: vendor copy pinned commit for local mirror harness; do not modify vendor code directly
