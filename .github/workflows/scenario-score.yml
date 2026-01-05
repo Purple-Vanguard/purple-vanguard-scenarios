@@ -1,0 +1,66 @@
+name: badblueprint-score
+
+on:
+  pull_request:
+    paths:
+      - "scenarios/badblueprint/**"
+      - "submissions/purple_vanguard/badblueprint/**"
+      - "scripts/export_badblueprint_submission.py"
+      - "scripts/validate_submission_bundle.py"
+      - "vendor/agentbeats-lambda/COMMIT_PIN.txt"
+  push:
+    paths:
+      - "scenarios/badblueprint/**"
+      - "submissions/purple_vanguard/badblueprint/**"
+      - "scripts/export_badblueprint_submission.py"
+      - "scripts/validate_submission_bundle.py"
+      - "vendor/agentbeats-lambda/COMMIT_PIN.txt"
+
+jobs:
+  badblueprint-score:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Export submission bundle
+        run: python scripts/export_badblueprint_submission.py
+
+      - name: Validate submission bundle
+        run: python scripts/validate_submission_bundle.py submissions/purple_vanguard/badblueprint
+
+      - name: Install vendored harness
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+          uv pip install -e vendor/agentbeats-lambda || python -m pip install -e vendor/agentbeats-lambda
+
+      - name: Run scoring
+        run: |
+          mkdir -p results/badblueprint
+          set +e
+          AGENTBEATS_RESULTS_DIR="results/badblueprint" \
+            OPENAI_API_KEY="ci-placeholder" \
+            OPENAI_BASE_URL="http://localhost:9999/v1" \
+            agentbeats-run submissions/purple_vanguard/badblueprint/scenario_badblueprint.toml \
+            > results/badblueprint/score.log 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            {
+              echo ""
+              echo "[warning] agentbeats-run exited with status $status."
+              echo "[warning] CI runs without external model access; review logs for details."
+            } >> results/badblueprint/score.log
+          fi
+          exit 0
+
+      - name: Upload scoring artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: badblueprint-score-results
+          path: results/badblueprint/**
