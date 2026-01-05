@@ -1,0 +1,91 @@
+name: Vendor Sync - AgentBeats Lambda
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - vendor/agentbeats-lambda/COMMIT_PIN.txt
+      - vendor/agentbeats-lambda/README.md
+      - scripts/sync_vendor_agentbeats_lambda.sh
+  push:
+    paths:
+      - vendor/agentbeats-lambda/COMMIT_PIN.txt
+      - vendor/agentbeats-lambda/README.md
+      - scripts/sync_vendor_agentbeats_lambda.sh
+
+permissions:
+  contents: write
+
+jobs:
+  vendor-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (pull_request head)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Checkout (push/workflow_dispatch)
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Set branch context
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH="${{ github.event.pull_request.head.ref }}"
+            IS_FORK="${{ github.event.pull_request.head.repo.fork }}"
+            HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+            IS_FORK="false"
+            HEAD_REPO="${{ github.repository }}"
+          fi
+          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+          echo "IS_FORK=$IS_FORK" >> "$GITHUB_ENV"
+          echo "HEAD_REPO=$HEAD_REPO" >> "$GITHUB_ENV"
+          if [[ "$HEAD_REPO" == "${{ github.repository }}" ]]; then
+            echo "SAME_REPO=true" >> "$GITHUB_ENV"
+          else
+            echo "SAME_REPO=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Sync vendor mirror
+        run: bash scripts/sync_vendor_agentbeats_lambda.sh
+
+      - name: Verify vendor sync is clean
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Vendor mirror is out-of-sync with pinned commit."
+            git status --porcelain
+            git diff --stat
+            git diff > vendor-sync.patch
+
+            if [[ "$IS_FORK" == "true" || "$SAME_REPO" != "true" ]]; then
+              echo "Fork PR detected; cannot push changes. Please apply vendor-sync.patch locally."
+              exit 1
+            fi
+
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add vendor/agentbeats-lambda
+            git commit -m "chore(vendor): sync agentbeats-lambda to pinned commit" || true
+            git push origin "HEAD:${BRANCH}"
+            echo "Vendor mirror auto-synced and pushed."
+            exit 0
+          fi
+
+          echo "Vendor mirror is already in sync."
+          exit 0
+
+      - name: Upload vendor sync patch
+        if: ${{ always() && hashFiles('vendor-sync.patch') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor-sync.patch
+          path: vendor-sync.patch
