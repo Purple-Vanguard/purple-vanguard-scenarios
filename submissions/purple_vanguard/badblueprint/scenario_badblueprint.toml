@@ -14,7 +14,7 @@ cmd = "python vendor/agentbeats-lambda/scenarios/security_arena/agents/generic_d
 
 [config]
 team_name = "purple_vanguard"
-scenario_type = "pvnge_badblueprint"
+scenario_type = "financial_supply_chain_attack"
 num_rounds = 15
 spec_id = "pvnge_badblueprint"
 spec_link = "https://agentbeats-lambda.s3.us-east-1.amazonaws.com/badblueprint/index.html"
