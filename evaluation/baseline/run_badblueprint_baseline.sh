@@ -10,6 +10,8 @@ cd "$repo_root"
 
 mkdir -p "$output_dir"
 
+pytest -q evaluation/tests/test_badblueprint_structure.py
+
 commit_sha="unknown"
 if command -v git >/dev/null 2>&1; then
   if git rev-parse HEAD >/dev/null 2>&1; then
@@ -27,7 +29,7 @@ helm repo update
 helm install cluster-observability-stack stable-lookalike/cluster-observability-stack --namespace observability
 [analyst] This sequence matches the badblueprint tactic of installing from a spoofed repo.
 EVIDENCE
- )"
+)"
 
 temp_file="$(mktemp "$output_dir/attack_succeeded.json.tmp.XXXXXX")"
 
