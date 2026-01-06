@@ -1,0 +1,97 @@
+name: badblueprint-score
+
+on:
+  pull_request:
+    paths:
+      - "scenarios/badblueprint/**"
+      - "submissions/purple_vanguard/badblueprint/**"
+      - "scripts/export_badblueprint_submission.py"
+      - "scripts/validate_submission_bundle.py"
+      - "vendor/agentbeats-lambda/COMMIT_PIN.txt"
+  push:
+    paths:
+      - "scenarios/badblueprint/**"
+      - "submissions/purple_vanguard/badblueprint/**"
+      - "scripts/export_badblueprint_submission.py"
+      - "scripts/validate_submission_bundle.py"
+      - "vendor/agentbeats-lambda/COMMIT_PIN.txt"
+
+jobs:
+  badblueprint-score:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install repo dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install vendored harness
+        run: |
+          python -m pip install --upgrade pip
+          pip install uv
+          if ! uv pip install -e vendor/agentbeats-lambda; then
+            pip install -e vendor/agentbeats-lambda
+          fi
+
+      - name: Export submission bundle
+        run: python scripts/export_badblueprint_submission.py
+
+      - name: Validate submission bundle
+        run: python scripts/validate_submission_bundle.py submissions/purple_vanguard/badblueprint
+
+      - name: Run harness (serve-only smoke test, bounded)
+        shell: bash
+        env:
+          OPENAI_API_KEY: "offline"
+          OPENAI_BASE_URL: "http://localhost:9999/v1"
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          mkdir -p results/badblueprint
+
+          LOG="results/badblueprint/serve_only.log"
+          PIDFILE="results/badblueprint/serve_only.pid"
+
+          setsid bash -lc \
+            'agentbeats-run submissions/purple_vanguard/badblueprint/scenario_badblueprint.toml --serve-only' \
+            >"$LOG" 2>&1 &
+          PID=$!
+          echo "$PID" > "$PIDFILE"
+
+          deadline=$((SECONDS+45))
+          ok=0
+          while [ $SECONDS -lt $deadline ]; do
+            if curl -fsS "http://127.0.0.1:9010/.well-known/agent-card.json" >/dev/null \
+              && curl -fsS "http://127.0.0.1:9020/.well-known/agent-card.json" >/dev/null \
+              && curl -fsS "http://127.0.0.1:9021/.well-known/agent-card.json" >/dev/null; then
+              ok=1
+              break
+            fi
+            sleep 1
+          done
+
+          kill -TERM -- "-$PID" 2>/dev/null || true
+          sleep 2
+          kill -KILL -- "-$PID" 2>/dev/null || true
+
+          python -c "from pathlib import Path; import json; commit_pin = Path('vendor/agentbeats-lambda/COMMIT_PIN.txt').read_text(encoding='utf-8').strip(); payload = {'mode': 'serve-only', 'scoring_executed': False, 'smoke_ready': bool(int(Path('results/badblueprint/serve_only.pid').read_text().strip() != '')), 'healthcheck_passed': bool($ok), 'reason': 'CI offline: bounded serve-only smoke test; full scoring should be run locally with your own API key', 'bundle': 'submissions/purple_vanguard/badblueprint', 'vendor_commit_pin': commit_pin}; Path('results/badblueprint/score_status.json').write_text(json.dumps(payload, indent=2, sort_keys=True), encoding='utf-8')"
+
+          echo "==== tail serve_only.log ===="
+          tail -n 200 "$LOG" || true
+
+          if [ "$ok" -ne 1 ]; then
+            echo "ERROR: serve-only agents did not become ready within 45s"
+            exit 1
+          fi
+
+      - name: Upload scoring artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: badblueprint-score-results
+          path: results/badblueprint/**
