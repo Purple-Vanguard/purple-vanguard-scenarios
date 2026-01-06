@@ -45,31 +45,27 @@ jobs:
       - name: Validate submission bundle
         run: python scripts/validate_submission_bundle.py submissions/purple_vanguard/badblueprint
 
-      - name: Run scoring
+      - name: Run scoring (serve-only smoke test)
+        shell: bash
         env:
           OPENAI_API_KEY: "offline"
           OPENAI_BASE_URL: "http://localhost:9999/v1"
         run: |
+          set -euo pipefail
           mkdir -p results/badblueprint
-          agentbeats-run submissions/purple_vanguard/badblueprint/scenario_badblueprint.toml --serve-only \
-            2>&1 | tee results/badblueprint/serve_only.log
-          python - <<'PY'
-            from pathlib import Path
-            import json
 
-            commit_pin = Path("vendor/agentbeats-lambda/COMMIT_PIN.txt").read_text(encoding="utf-8").strip()
-            payload = {
-                "mode": "serve-only",
-                "scoring_executed": False,
-                "reason": "CI is offline and does not use external model API keys",
-                "bundle": "submissions/purple_vanguard/badblueprint",
-                "vendor_commit_pin": commit_pin,
-            }
-            Path("results/badblueprint/score_status.json").write_text(
-                json.dumps(payload, indent=2, sort_keys=True),
-                encoding="utf-8",
-            )
-          PY
+          timeout 45s agentbeats-run submissions/purple_vanguard/badblueprint/scenario_badblueprint.toml --serve-only \
+            2>&1 | tee results/badblueprint/serve_only.log
+          rc=${PIPESTATUS[0]}
+
+          if [[ "$rc" == "124" ]]; then
+            echo "serve-only smoke test timed out as expected (treating as success)"
+            rc=0
+          fi
+
+          python -c "from pathlib import Path; import json; commit_pin = Path('vendor/agentbeats-lambda/COMMIT_PIN.txt').read_text(encoding='utf-8').strip(); payload = {'mode': 'serve-only', 'scoring_executed': False, 'reason': 'CI is offline; serve-only smoke test runs for a bounded time window', 'bundle': 'submissions/purple_vanguard/badblueprint', 'vendor_commit_pin': commit_pin}; Path('results/badblueprint/score_status.json').write_text(json.dumps(payload, indent=2, sort_keys=True), encoding='utf-8')"
+
+          exit "$rc"
 
       - name: Upload scoring artifacts
         uses: actions/upload-artifact@v4
