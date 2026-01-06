@@ -82,6 +82,26 @@ def _build_toml(config: dict) -> str:
     return "\n".join(lines)
 
 
+def _build_readme() -> str:
+    return "\n".join(
+        [
+            "# Badblueprint Submission Bundle",
+            "",
+            "CI runs the vendored harness in `--serve-only` mode as an offline smoke test.",
+            "To run full scoring locally with your own API key:",
+            "",
+            "```bash",
+            "python scripts/export_badblueprint_submission.py",
+            "python scripts/validate_submission_bundle.py submissions/purple_vanguard/badblueprint",
+            "pip install -e vendor/agentbeats-lambda",
+            "export OPENAI_API_KEY=...  # set locally",
+            "export OPENAI_BASE_URL=...  # optional, if using a compatible endpoint",
+            "agentbeats-run submissions/purple_vanguard/badblueprint/scenario_badblueprint.toml",
+            "```",
+        ]
+    )
+
+
 def _build_plugin(
     readme_text: str,
     devops_prompt: str,
@@ -234,6 +254,7 @@ def export_bundle() -> None:
     )
 
     _write_file(SUBMISSION_DIR / "scenario_badblueprint.toml", _build_toml(config))
+    _write_file(SUBMISSION_DIR / "README.md", _build_readme())
     _write_file(SUBMISSION_DIR / "plugin_badblueprint.py", _build_plugin(
         readme_text=readme_text,
         devops_prompt=devops_prompt,
