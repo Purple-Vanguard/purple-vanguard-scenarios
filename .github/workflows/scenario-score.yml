@@ -1,0 +1,59 @@
+name: badblueprint-score
+
+on:
+  pull_request:
+    paths:
+      - "scenarios/badblueprint/**"
+      - "evaluation/**"
+      - ".github/workflows/scenario-score.yml"
+  workflow_dispatch:
+
+jobs:
+  badblueprint-score:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Serve-only smoke test
+        run: |
+          set -euo pipefail
+          mkdir -p results/badblueprint
+          bash evaluation/baseline/run_badblueprint_baseline.sh > results/badblueprint/serve_only.log 2>&1 &
+          serve_pid=$!
+          serve_pgid=$(ps -o pgid= "$serve_pid" | tr -d ' ')
+
+          for _ in $(seq 1 30); do
+            if ps -p "$serve_pid" >/dev/null 2>&1; then
+              sleep 1
+            else
+              echo "serve-only process exited early"
+              break
+            fi
+          done
+
+          curl -fsS "http://127.0.0.1:9010/.well-known/agent-card.json" > results/badblueprint/agent-card-green.json || echo "warn: could not fetch green agent-card"
+          curl -fsS "http://127.0.0.1:9020/.well-known/agent-card.json" > results/badblueprint/agent-card-defender.json || echo "warn: could not fetch defender agent-card"
+          curl -fsS "http://127.0.0.1:9021/.well-known/agent-card.json" > results/badblueprint/agent-card-attacker.json || echo "warn: could not fetch attacker agent-card"
+
+          if [[ -n "$serve_pgid" ]]; then
+            kill -TERM -- "-$serve_pgid" || true
+          else
+            kill -TERM "$serve_pid" || true
+          fi
+          wait "$serve_pid" || true
+
+      - name: Upload score output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: badblueprint-score-results
+          path: results/badblueprint/**
