@@ -76,6 +76,20 @@ jobs:
             sleep 1
           done
 
+          curl -fsS "http://127.0.0.1:9010/.well-known/agent-card.json" > "results/badblueprint/agent-card-green.json" \
+            || echo "warn: could not fetch agent-card-green.json"
+          curl -fsS "http://127.0.0.1:9020/.well-known/agent-card.json" > "results/badblueprint/agent-card-defender.json" \
+            || echo "warn: could not fetch agent-card-defender.json"
+          curl -fsS "http://127.0.0.1:9021/.well-known/agent-card.json" > "results/badblueprint/agent-card-attacker.json" \
+            || echo "warn: could not fetch agent-card-attacker.json"
+
+          for card in results/badblueprint/agent-card-*.json; do
+            if [ -s "$card" ]; then
+              echo "==== ${card} (head) ===="
+              head -n 30 "$card" || true
+            fi
+          done
+
           kill -TERM -- "-$PID" 2>/dev/null || true
           sleep 2
           kill -KILL -- "-$PID" 2>/dev/null || true
