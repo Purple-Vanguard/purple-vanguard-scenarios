@@ -18,4 +18,5 @@ scenario_type = "financial_supply_chain_attack"
 num_rounds = 15
 spec_id = "pvnge_badblueprint"
 spec_link = "https://agentbeats-lambda.s3.us-east-1.amazonaws.com/badblueprint/index.html"
+plugin = "plugin:PLUGIN_CLASS"
 attack_type = "financial_supply_chain_attack"

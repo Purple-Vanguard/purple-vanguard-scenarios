@@ -76,6 +76,7 @@ def _build_toml(config: dict) -> str:
         f"num_rounds = {max_rounds}",
         f"spec_id = \"{spec_id}\"",
         f"spec_link = \"{spec_link}\"",
+        "plugin = \"plugin:PLUGIN_CLASS\"",
         f"attack_type = \"{scenario_type}\"",
         "",
     ]
@@ -284,14 +285,7 @@ def export_bundle(submission_dir: Path) -> None:
     )
     _write_file(
         submission_dir / "plugin_badblueprint.py",
-        "\n".join(
-            [
-                "# Auto-generated compatibility shim.",
-                "# Do not edit.",
-                "from plugin import *  # noqa",
-                "",
-            ]
-        ),
+        "# Compatibility shim...\nfrom plugin import *  # noqa\n",
     )
 
 
