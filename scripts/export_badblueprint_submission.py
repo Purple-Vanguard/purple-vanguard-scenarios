@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import shutil
 from pathlib import Path
@@ -10,7 +11,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCENARIO_DIR = REPO_ROOT / "scenarios" / "badblueprint"
-SUBMISSION_DIR = REPO_ROOT / "submissions" / "purple_vanguard" / "badblueprint"
 
 
 def _read_yaml(path: Path) -> dict:
@@ -230,38 +230,77 @@ def _build_plugin(
     return "\n".join(lines)
 
 
-def export_bundle() -> None:
+def _resolve_submission_dir(args: argparse.Namespace) -> Path:
+    base_root = (
+        Path(args.output_repo_root).resolve()
+        if args.output_repo_root
+        else REPO_ROOT
+    )
+    if args.upstream_layout:
+        return (
+            base_root
+            / "scenarios"
+            / "security_arena"
+            / "submissions"
+            / "purple_vanguard"
+            / "badblueprint"
+        )
+    return base_root / "submissions" / "purple_vanguard" / "badblueprint"
+
+
+def export_bundle(submission_dir: Path) -> None:
     config = _read_yaml(SCENARIO_DIR / "scenario_config.yaml")
     readme_text = _read_text(SCENARIO_DIR / "README.md")
     devops_prompt = _read_text(SCENARIO_DIR / "prompts" / "devops_task_request.md")
     attacker_lure = _read_text(SCENARIO_DIR / "prompts" / "attacker_lure.md")
 
-    if SUBMISSION_DIR.exists():
-        shutil.rmtree(SUBMISSION_DIR)
+    if submission_dir.exists():
+        shutil.rmtree(submission_dir)
 
-    (SUBMISSION_DIR / "artifacts").mkdir(parents=True, exist_ok=True)
-    (SUBMISSION_DIR / "prompts").mkdir(parents=True, exist_ok=True)
+    (submission_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+    (submission_dir / "prompts").mkdir(parents=True, exist_ok=True)
 
     shutil.copytree(
         SCENARIO_DIR / "artifacts",
-        SUBMISSION_DIR / "artifacts",
+        submission_dir / "artifacts",
         dirs_exist_ok=True,
     )
     shutil.copytree(
         SCENARIO_DIR / "prompts",
-        SUBMISSION_DIR / "prompts",
+        submission_dir / "prompts",
         dirs_exist_ok=True,
     )
 
-    _write_file(SUBMISSION_DIR / "scenario_badblueprint.toml", _build_toml(config))
-    _write_file(SUBMISSION_DIR / "README.md", _build_readme())
-    _write_file(SUBMISSION_DIR / "plugin_badblueprint.py", _build_plugin(
-        readme_text=readme_text,
-        devops_prompt=devops_prompt,
-        attacker_lure=attacker_lure,
-        config=config,
-    ))
+    _write_file(submission_dir / "scenario_badblueprint.toml", _build_toml(config))
+    _write_file(submission_dir / "README.md", _build_readme())
+    _write_file(
+        submission_dir / "plugin.py",
+        _build_plugin(
+            readme_text=readme_text,
+            devops_prompt=devops_prompt,
+            attacker_lure=attacker_lure,
+            config=config,
+        ),
+    )
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--upstream-layout",
+        action="store_true",
+        help="Export to the upstream agentbeats-lambda submissions layout.",
+    )
+    parser.add_argument(
+        "--output-repo-root",
+        default=None,
+        help="Override the repository root used for output paths.",
+    )
+    return parser
 
 
 if __name__ == "__main__":
-    export_bundle()
+    parser = _build_parser()
+    args = parser.parse_args()
+    target_dir = _resolve_submission_dir(args)
+    export_bundle(target_dir)
