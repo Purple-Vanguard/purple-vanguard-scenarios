@@ -282,6 +282,17 @@ def export_bundle(submission_dir: Path) -> None:
             config=config,
         ),
     )
+    _write_file(
+        submission_dir / "plugin_badblueprint.py",
+        "\n".join(
+            [
+                "# Auto-generated compatibility shim.",
+                "# Do not edit.",
+                "from plugin import *  # noqa",
+                "",
+            ]
+        ),
+    )
 
 
 def _build_parser() -> argparse.ArgumentParser:
