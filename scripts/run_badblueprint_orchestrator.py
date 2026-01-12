@@ -21,8 +21,10 @@ def _register_plugin() -> None:
 
     try:
         from plugin import PLUGIN_CLASS, SCENARIO_TYPE
+        import plugin as badblueprint_plugin
     except ImportError:
         from plugin_badblueprint import PLUGIN_CLASS, SCENARIO_TYPE
+        import plugin_badblueprint as badblueprint_plugin
 
     registry.register_scenario(SCENARIO_TYPE, PLUGIN_CLASS)
 
