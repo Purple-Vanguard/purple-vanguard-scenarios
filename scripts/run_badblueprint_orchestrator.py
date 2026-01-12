@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
 import sys
 from pathlib import Path
 
@@ -21,8 +22,12 @@ def _register_plugin() -> None:
 
     try:
         from plugin import PLUGIN_CLASS, SCENARIO_TYPE
+        import plugin as badblueprint_plugin
     except ImportError:
-        from plugin_badblueprint import PLUGIN_CLASS, SCENARIO_TYPE
+        legacy_module = "plugin" + "_badblueprint"
+        badblueprint_plugin = importlib.import_module(legacy_module)
+        PLUGIN_CLASS = badblueprint_plugin.PLUGIN_CLASS
+        SCENARIO_TYPE = badblueprint_plugin.SCENARIO_TYPE
 
     registry.register_scenario(SCENARIO_TYPE, PLUGIN_CLASS)
 
