@@ -20,14 +20,11 @@ def _register_plugin() -> None:
     from scenarios.security_arena.plugins import registry
 
     try:
-        import plugin as badblueprint_plugin
+        from plugin import PLUGIN_CLASS, SCENARIO_TYPE
     except ImportError:
-        import plugin_badblueprint as badblueprint_plugin
+        from plugin_badblueprint import PLUGIN_CLASS, SCENARIO_TYPE
 
-    registry.register_scenario(
-        badblueprint_plugin.SCENARIO_TYPE,
-        badblueprint_plugin.PLUGIN_CLASS,
-    )
+    registry.register_scenario(SCENARIO_TYPE, PLUGIN_CLASS)
 
     original_talk = tool_provider.ToolProvider.talk_to_agent
 
