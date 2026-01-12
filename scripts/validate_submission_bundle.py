@@ -106,9 +106,9 @@ def validate_bundle(bundle_dir: Path) -> None:
         except Exception as exc:
             _error(f"Failed to parse TOML {toml_path}: {exc}")
 
-    plugin_paths = sorted(bundle_dir.glob("plugin_*.py"))
-    if not plugin_paths:
-        _error("No plugin_*.py files found in bundle")
+    plugin_path = bundle_dir / "plugin.py"
+    if not plugin_path.exists():
+        _error("plugin.py not found in bundle")
 
     artifacts_dir = bundle_dir / "artifacts"
     prompts_dir = bundle_dir / "prompts"
@@ -126,7 +126,7 @@ def validate_bundle(bundle_dir: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     _check_vendor_submissions(repo_root)
 
-    plugin_class, scenario_type = _load_plugin(plugin_paths[0], repo_root)
+    plugin_class, scenario_type = _load_plugin(plugin_path, repo_root)
     print(f"Validated plugin {plugin_class.__name__} for scenario {scenario_type}")
 
 

@@ -18,7 +18,11 @@ def _register_plugin() -> None:
 
     from agentbeats import tool_provider
     from scenarios.security_arena.plugins import registry
-    from plugin_badblueprint import PLUGIN_CLASS, SCENARIO_TYPE
+
+    try:
+        from plugin import PLUGIN_CLASS, SCENARIO_TYPE
+    except ImportError:
+        from plugin_badblueprint import PLUGIN_CLASS, SCENARIO_TYPE
 
     registry.register_scenario(SCENARIO_TYPE, PLUGIN_CLASS)
 
