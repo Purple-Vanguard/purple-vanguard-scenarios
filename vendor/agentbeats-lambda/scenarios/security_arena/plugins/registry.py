@@ -13,12 +13,24 @@ from .portfolioiq import PortfolioIQPlugin
 from .thingularity import ThingularityPlugin
 from .example_medical import MedicalRecordsPlugin
 
+# Import submission plugins
+import sys
+from pathlib import Path
+_submissions_dir = Path(__file__).parent.parent / "submissions"
+if str(_submissions_dir) not in sys.path:
+    sys.path.insert(0, str(_submissions_dir))
+
+from purple_vanguard.simple_password_leak.plugin import SimplePasswordLeakPlugin
+from purple_vanguard.pluginpirate.plugin import PluginPiratePlugin
+
 
 # Registry mapping scenario names to plugin classes
 SCENARIO_PLUGINS: dict[str, type[ScenarioPlugin]] = {
     "portfolioiq": PortfolioIQPlugin,
     "thingularity": ThingularityPlugin,
     "medical_records": MedicalRecordsPlugin,  # Example custom scenario
+    "simple_password_leak": SimplePasswordLeakPlugin,
+    "pluginpirate": PluginPiratePlugin,
 }
 
 
