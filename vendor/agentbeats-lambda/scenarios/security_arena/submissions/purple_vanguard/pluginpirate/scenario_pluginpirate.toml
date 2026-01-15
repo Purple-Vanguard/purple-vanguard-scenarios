@@ -13,5 +13,5 @@ endpoint = "http://127.0.0.1:9020"
 cmd = "python scenarios/security_arena/agents/generic_defender.py --host 127.0.0.1 --port 9020 --model gpt-oss-20b"
 
 [config]
-scenario_type = "simple_password_leak"
+scenario_type = "pluginpirate"
 num_rounds = 5
