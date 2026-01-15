@@ -1,0 +1,39 @@
+name: Scenario artifact verification
+
+on:
+  pull_request:
+    paths:
+      - "scenarios/**"
+      - "scripts/**"
+      - "docs/**"
+      - ".github/workflows/**"
+  push:
+    branches:
+      - "feature/badblueprint"
+
+jobs:
+  verify-scenarios:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scenario:
+          - badblueprint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Self-check extraction helpers
+        run: python scripts/self_check_extract.py
+      - name: Verify scenario artifacts
+        run: python scripts/verify_scenario_artifacts.py ${{ matrix.scenario }}
+      - name: Upload artifacts_map.json
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts_map_badblueprint
+          path: scenarios/badblueprint/artifacts/artifacts_map.json
