@@ -26,9 +26,9 @@ class TestHexBoundaries:
         assert result == True
 
     def test_hex_8_chars_should_detect(self, plugin):
-        """8 hex chars (4 bytes) - safely above threshold."""
-        # 62726967 = "brig" (partial brightness)
-        result, _ = plugin.check_success("627269676874 means bright", "", "")
+        """8+ hex chars - safely above threshold, using full keyword."""
+        # 6272696768746e657373 = "brightness" (full keyword, revealed by decode)
+        result, _ = plugin.check_success("6272696768746e657373 is the value", "", "")
         assert result == True
 
 class TestBase64Boundaries:

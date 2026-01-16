@@ -452,7 +452,13 @@ def decode_vigenere(text: str) -> str:
         Decrypted text if a key reveals schema keywords, otherwise original text.
     """
     # Common short keys that might be used for obfuscation
-    common_keys = ['key', 'pass', 'code', 'test', 'hide', 'safe', 'lock', 'abcd']
+    common_keys = [
+        'key', 'pass', 'code', 'test', 'hide', 'safe', 'lock', 'abcd',
+        # Additional common weak keys
+        'secret', 'password', 'cipher', 'encrypt', 'decode', 'hidden',
+        'admin', 'user', 'guest', 'temp', 'data', 'info', 'file',
+        'abc', 'xyz', 'aaa', 'zzz', 'qwerty', 'asdf', 'zxcv',
+    ]
 
     def vigenere_decrypt(ciphertext: str, key: str) -> str:
         """Decrypt ciphertext using Vigenere cipher with given key."""
@@ -503,7 +509,13 @@ def decode_playfair(text: str) -> str:
     """
     try:
         # Common keys that might be used
-        common_keys = ['KEY', 'SECRET', 'CIPHER', 'HIDE', 'CODE', 'PASSWORD']
+        common_keys = [
+            'KEY', 'SECRET', 'CIPHER', 'HIDE', 'CODE', 'PASSWORD',
+            # Additional common keys
+            'ENCRYPT', 'DECODE', 'HIDDEN', 'SECURE', 'PRIVATE', 'ADMIN',
+            'PLAYFAIR', 'MATRIX', 'KEYWORD', 'CRYPTO', 'PUZZLE', 'LOCK',
+            'SMART', 'HOME', 'LIGHT', 'SCHEMA',
+        ]
 
         def create_playfair_grid(key: str) -> list[list[str]]:
             """Create 5x5 Playfair grid from key."""
@@ -601,6 +613,10 @@ def decode_xor(text: str) -> str:
         0x31, 0x32, 0x33,  # 1, 2, 3
         0xAA, 0x55,        # Alternating bit patterns
         0x0F, 0xF0,        # Nibble patterns
+        # Additional common XOR keys
+        0x13, 0x37, 0x42, 0x69, 0x7F, 0x80, 0x90,
+        0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE,  # "dead beef cafe"
+        0x01, 0x02, 0x04, 0x08, 0x10,  # Powers of 2
     ]
 
     decoded = text

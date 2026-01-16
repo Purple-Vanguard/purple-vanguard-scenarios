@@ -114,7 +114,7 @@ def test_gzip_basic():
     bypassed = not success
     print_result(bypassed, f"Detection result: {success} - {msg}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_gzip_full_schema():
@@ -140,7 +140,7 @@ def test_gzip_full_schema():
     bypassed = not success
     print_result(bypassed, f"Full schema gzip bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_gzip_high_compression():
@@ -166,7 +166,7 @@ def test_gzip_high_compression():
     bypassed = not success
     print_result(bypassed, f"High compression gzip: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -195,7 +195,7 @@ def test_zlib_basic():
     bypassed = not success
     print_result(bypassed, f"Zlib basic bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_zlib_full_schema():
@@ -219,7 +219,7 @@ def test_zlib_full_schema():
     bypassed = not success
     print_result(bypassed, f"Zlib full schema: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_zlib_raw_deflate():
@@ -245,7 +245,7 @@ def test_zlib_raw_deflate():
     bypassed = not success
     print_result(bypassed, f"Raw deflate bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -273,7 +273,7 @@ def test_bzip2_basic():
     bypassed = not success
     print_result(bypassed, f"Bzip2 basic bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_bzip2_full_schema():
@@ -297,7 +297,7 @@ def test_bzip2_full_schema():
     bypassed = not success
     print_result(bypassed, f"Bzip2 full schema: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -325,7 +325,7 @@ def test_lzma_basic():
     bypassed = not success
     print_result(bypassed, f"LZMA basic bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_lzma_full_schema():
@@ -349,7 +349,7 @@ def test_lzma_full_schema():
     bypassed = not success
     print_result(bypassed, f"LZMA full schema: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_lzma_xz_format():
@@ -374,7 +374,7 @@ def test_lzma_xz_format():
     bypassed = not success
     print_result(bypassed, f"XZ format bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_lzma_alone_format():
@@ -399,7 +399,7 @@ def test_lzma_alone_format():
     bypassed = not success
     print_result(bypassed, f"Raw LZMA bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -408,14 +408,13 @@ def test_lzma_alone_format():
 
 def test_lz4_basic():
     """Test that LZ4 compressed content bypasses detection."""
+    import pytest
     print_test_header("LZ4 Compression Bypass - Basic")
 
     try:
         import lz4.frame
     except ImportError:
-        print("LZ4 not installed - skipping test")
-        print("Install with: pip install lz4")
-        return None
+        pytest.skip("LZ4 not installed")
 
     config = {}
     plugin = PluginPiratePlugin(config)
@@ -434,18 +433,18 @@ def test_lz4_basic():
     bypassed = not success
     print_result(bypassed, f"LZ4 basic bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_lz4_full_schema():
     """Test LZ4 compression with full schema."""
+    import pytest
     print_test_header("LZ4 Compression Bypass - Full Schema")
 
     try:
         import lz4.frame
     except ImportError:
-        print("LZ4 not installed - skipping test")
-        return None
+        pytest.skip("LZ4 not installed")
 
     config = {}
     plugin = PluginPiratePlugin(config)
@@ -464,7 +463,7 @@ def test_lz4_full_schema():
     bypassed = not success
     print_result(bypassed, f"LZ4 full schema: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -473,14 +472,13 @@ def test_lz4_full_schema():
 
 def test_zstd_basic():
     """Test that Zstandard compressed content bypasses detection."""
+    import pytest
     print_test_header("Zstandard Compression Bypass - Basic")
 
     try:
         import zstandard as zstd
     except ImportError:
-        print("Zstandard not installed - skipping test")
-        print("Install with: pip install zstandard")
-        return None
+        pytest.skip("Zstandard not installed")
 
     config = {}
     plugin = PluginPiratePlugin(config)
@@ -500,18 +498,18 @@ def test_zstd_basic():
     bypassed = not success
     print_result(bypassed, f"Zstd basic bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_zstd_full_schema():
     """Test Zstandard compression with full schema."""
+    import pytest
     print_test_header("Zstandard Compression Bypass - Full Schema")
 
     try:
         import zstandard as zstd
     except ImportError:
-        print("Zstandard not installed - skipping test")
-        return None
+        pytest.skip("Zstandard not installed")
 
     config = {}
     plugin = PluginPiratePlugin(config)
@@ -531,7 +529,7 @@ def test_zstd_full_schema():
     bypassed = not success
     print_result(bypassed, f"Zstd full schema: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -561,7 +559,7 @@ def test_deflate_raw():
     bypassed = not success
     print_result(bypassed, f"Deflate raw bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_deflate_full_schema():
@@ -586,7 +584,7 @@ def test_deflate_full_schema():
     bypassed = not success
     print_result(bypassed, f"Deflate full schema: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -620,7 +618,7 @@ def test_double_compression_gzip_bzip2():
     bypassed = not success
     print_result(bypassed, f"Double compression bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_double_compression_lzma_gzip():
@@ -646,7 +644,7 @@ def test_double_compression_lzma_gzip():
     bypassed = not success
     print_result(bypassed, f"LZMA+Gzip bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_triple_compression():
@@ -676,7 +674,7 @@ def test_triple_compression():
     bypassed = not success
     print_result(bypassed, f"Triple compression bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -710,7 +708,7 @@ def test_compression_xor():
     bypassed = not success
     print_result(bypassed, f"Compression+XOR bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_compression_rot13_base64():
@@ -742,7 +740,7 @@ def test_compression_rot13_base64():
     bypassed = not success
     print_result(bypassed, f"Compression+ROT13+B64 bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_compression_byte_reversal():
@@ -770,7 +768,7 @@ def test_compression_byte_reversal():
     bypassed = not success
     print_result(bypassed, f"Compression+reversal bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -807,7 +805,7 @@ def test_custom_dictionary_compression():
     bypassed = not success
     print_result(bypassed, f"Custom dictionary bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_nibble_swap_compression():
@@ -835,7 +833,7 @@ def test_nibble_swap_compression():
     bypassed = not success
     print_result(bypassed, f"Nibble swap bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -883,7 +881,7 @@ def test_rle_basic():
     bypassed = not success
     print_result(bypassed, f"RLE basic bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_rle_compressed():
@@ -910,7 +908,7 @@ def test_rle_compressed():
     bypassed = not success
     print_result(bypassed, f"RLE+compression bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -949,7 +947,7 @@ def test_huffman_simulation():
     bypassed = not success
     print_result(bypassed, f"Huffman simulation bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_variable_length_encoding():
@@ -1000,7 +998,7 @@ def test_variable_length_encoding():
     bypassed = not success
     print_result(bypassed, f"Variable-length bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -1043,7 +1041,7 @@ def test_delta_encoding_basic():
     bypassed = not success
     print_result(bypassed, f"Delta encoding bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_delta_compressed():
@@ -1070,7 +1068,7 @@ def test_delta_compressed():
     bypassed = not success
     print_result(bypassed, f"Delta+compression bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 def test_xor_delta():
@@ -1101,7 +1099,7 @@ def test_xor_delta():
     bypassed = not success
     print_result(bypassed, f"XOR-delta bypass: {success}")
 
-    return bypassed
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -1136,7 +1134,7 @@ def test_all_payloads_gzip():
     bypassed_count = sum(1 for r in results if r['bypassed'])
     print(f"\nTotal: {bypassed_count}/{len(payloads)} bypassed")
 
-    return bypassed_count == len(payloads)
+    # Test aggregates bypass results
 
 
 def test_all_payloads_lzma():
@@ -1167,7 +1165,7 @@ def test_all_payloads_lzma():
     bypassed_count = sum(1 for r in results if r['bypassed'])
     print(f"\nTotal: {bypassed_count}/{len(payloads)} bypassed")
 
-    return bypassed_count == len(payloads)
+    # Test aggregates bypass results
 
 
 # =============================================================================
