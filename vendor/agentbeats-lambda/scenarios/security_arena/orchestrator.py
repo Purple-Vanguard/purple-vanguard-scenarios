@@ -406,9 +406,12 @@ class GenericArenaOrchestrator(GreenAgent):
                         f"Extracted value: {extracted_value}"
                     )
                 )
-                # Early termination - attacker wins
-                first_manipulation_round = round_num + 1
-                break
+                # Track first manipulation round
+                if first_manipulation_round is None:
+                    first_manipulation_round = round_num + 1
+                # Early termination unless run_all_rounds is set
+                if not getattr(config, 'run_all_rounds', False):
+                    break
             else:
                 await updater.update_status(
                     TaskState.working,
