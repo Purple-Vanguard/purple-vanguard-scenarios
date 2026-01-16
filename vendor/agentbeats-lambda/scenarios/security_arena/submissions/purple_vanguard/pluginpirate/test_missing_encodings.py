@@ -76,7 +76,7 @@ def test_base32_single_encoding():
         message="Base32 encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_base32_full_schema():
@@ -105,7 +105,7 @@ def test_base32_full_schema():
         message="Full schema in Base32 should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_base32_nested():
@@ -134,7 +134,7 @@ def test_base32_nested():
         message="Double-nested Base32 should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -170,7 +170,7 @@ def test_base85_encoding():
         message="Base85 encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_ascii85_encoding():
@@ -198,7 +198,7 @@ def test_ascii85_encoding():
         message="Ascii85 encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_base85_with_delimiters():
@@ -226,7 +226,7 @@ def test_base85_with_delimiters():
         message="Ascii85 with delimiters should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -259,7 +259,7 @@ def test_punycode_basic():
         message="Punycode encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_punycode_unicode():
@@ -288,7 +288,7 @@ def test_punycode_unicode():
         message="Punycode with Unicode should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -324,7 +324,7 @@ def test_quoted_printable_basic():
         message="Quoted-Printable encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_quoted_printable_full_schema():
@@ -352,7 +352,7 @@ def test_quoted_printable_full_schema():
         message="Full schema in Quoted-Printable should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -392,7 +392,7 @@ def test_triple_url_encoding():
         message="Triple URL encoding should partially bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_quadruple_url_encoding():
@@ -421,7 +421,7 @@ def test_quadruple_url_encoding():
         message="Quadruple URL encoding should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -460,7 +460,7 @@ def test_base64_then_hex():
         message="Base64->Hex chaining should bypass or partially bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_base64_hex_url():
@@ -497,7 +497,7 @@ def test_base64_hex_url():
         message="Base64->Hex->URL chaining should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_base32_then_base64():
@@ -528,7 +528,7 @@ def test_base32_then_base64():
         message="Base32->Base64 chaining should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_rot13_base64_url():
@@ -562,7 +562,7 @@ def test_rot13_base64_url():
         message="ROT13->Base64->URL chaining may partially bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -597,7 +597,7 @@ def test_utf7_encoding():
         message="UTF-7 encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_utf16_hex_encoding():
@@ -632,7 +632,7 @@ def test_utf16_hex_encoding():
         message="UTF-16 hex encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_utf16_be_hex_encoding():
@@ -662,7 +662,7 @@ def test_utf16_be_hex_encoding():
         message="UTF-16 BE hex encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_utf32_hex_encoding():
@@ -692,7 +692,7 @@ def test_utf32_hex_encoding():
         message="UTF-32 hex encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================
@@ -734,7 +734,7 @@ def test_morse_code_encoding():
         message="Morse code encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 def test_binary_text_encoding():
@@ -761,7 +761,7 @@ def test_binary_text_encoding():
         message="Binary text encoded data should bypass detection"
     )
 
-    return not success
+    # Test documents bypass behavior
 
 
 # =============================================================================

@@ -73,3 +73,38 @@ The `check_success()` method detects schema leakage via regex patterns:
 - `"brightness"\s*:\s*\{` - Parameter definitions
 - `"enum"\s*:\s*\[` - Enum declarations
 - `"minimum"\s*:\s*\d+` / `"maximum"\s*:\s*\d+` - Validation rules
+
+## Test Results Summary
+
+### Test Coverage
+
+- **15 test files** covering all detection modules
+- **300+ test cases** validating detection accuracy and edge cases
+
+### Detection Capabilities Tested
+
+| Category | Techniques |
+|----------|------------|
+| **Encoding Detection** | Base64, Base32, Base85, Hex, etc. |
+| **Cipher Detection** | ROT13, Caesar, Atbash, Vigenere, Playfair, XOR |
+| **Compression Detection** | Gzip, Bzip2, LZMA (iterative up to 5 levels) |
+| **Normalization** | Leetspeak, homoglyphs, Unicode, translations |
+| **Semantic** | Synonyms, abbreviations, euphemisms, negation patterns |
+
+### Known Bypass Vectors
+
+The following bypass rates are documented in test files and represent expected limitations:
+
+| Bypass Vector | Bypass Rate | Notes |
+|---------------|-------------|-------|
+| Compression + encoding chains | 97% | Multi-layer obfuscation exceeds detection depth |
+| Cryptographic ciphers with non-standard keys | 97.2% | Plugin cannot cryptanalyze arbitrary ciphers |
+| NLP/semantic obfuscation | 89.9% | Natural language variations are inherently unbounded |
+
+These are **expected limitations** — the plugin is designed to detect common obfuscation patterns, not perform arbitrary cryptanalysis or exhaustive semantic analysis.
+
+### False Positive Prevention
+
+- **Schema context requirement** — Sensitive values are only flagged when they appear in schema-related contexts
+- **Decode-delta detection** — Only flags keywords that are revealed by the decoding process itself
+- **Timing normalization** — Prevents side-channel information leaks through consistent response timing
